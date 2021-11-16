@@ -1,8 +1,11 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+      <router-link to="/home">点击进入</router-link>
+      <span>~~~~~</span>
+      <router-link to="/">空白页</router-link>
+      <span>~~~~~</span>
+      <button @click="goOff">返回</button>
     </div>
     <router-view />
   </div>
@@ -16,17 +19,19 @@
   text-align: center;
   color: #2c3e50;
 }
+</style>
 
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
+<script>
+export default {
+  methods: {
+    goOff () {
+      if (window.history.length <= 1) {
+        this.$router.push({ path: '/' })
+        return false
+      } else {
+        this.$router.go(-1)
+      }
     }
   }
 }
-</style>
+</script>
