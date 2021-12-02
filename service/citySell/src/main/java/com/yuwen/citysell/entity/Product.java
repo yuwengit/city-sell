@@ -3,43 +3,51 @@ package com.yuwen.citysell.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
-/**
- * 收货地址
- *
- * @author 相柳
- * @date 2021/11/17
- */
-
 @Data
-@TableName("t_address")
-public class Address {
-
+@TableName("t_product")
+public class Product {
     /**
      * 主键
      */
     private Long id;
 
     /**
-     * 收货人姓名
+     * 商品名称
      */
-    private String username;
+    private String prodName;
 
     /**
-     * 收货电话
+     * 商品信息
      */
-    private String phone;
+    private String prodInfo;
 
     /**
-     * 收货地址
+     * 商品规格
      */
-    private String shippingAddr;
+    private String prodUnit;
 
     /**
-     * 默认收货地址：0-否，1-是
+     * 商品价格
      */
-    private Integer defaultFlag;
+    private BigDecimal prodPrice;
+
+    /**
+     * 总库存
+     */
+    private Integer totalStock;
+
+    /**
+     * 剩余库存
+     */
+    private Integer remainStock;
+
+    /**
+     * 商品图片路径
+     */
+    private String imgPath;
 
     /**
      * 创建人id
@@ -65,6 +73,4 @@ public class Address {
      * 删除状态：0-否，1-是
      */
     private Integer deleteStatus;
-
-
 }

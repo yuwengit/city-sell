@@ -1,67 +1,104 @@
 <template>
-  <div class="container">
-    <div class="col-md-12 column">
-      <p class="menu">
-        <router-link to="/shopCar"
-                     class="menu-item">购物车(1)</router-link>
-        <router-link to="/address"
-                     class="menu-item">收货地址</router-link>
-      </p>
-    </div>
-    <div class="row clearfix">
-      <div class="col-md-3 column">
+  <el-container class="box">
+    <el-header>
+      <el-link type="success"
+               @click="jumpView('/shopCar')">购物车({{shopCarSize}})</el-link>
+      &nbsp;&nbsp;&nbsp;
+      <el-link type="primary"
+               @click="jumpView('/address')">收货地址</el-link>
+    </el-header>
+    <el-container>
+      <el-aside>
         <img class="show-img"
-             src="@/assets/images/外套1.png">
-      </div>
-      <div class="col-md-7 column">
-        <p class="prod-info">芊森依 【多款可选】羽绒服女2021新款韩版羽绒外套宽松加厚连帽中长款白鸭绒大毛领 A款-宽松版-西柚红 M【110-130斤】</p>
-        <p class="prod-info">价格：199￥</p>
-        <p class="prod-info">：芜湖市鸠江区国家级广告产业园B座614</p>
-        <p class="prod-info">规格：件</p>
-        <p class="prod-info">数量:<input class="form-control"
-                 placeholder="数量"
-                 type="number"></p>
-
-        <button type="button"
-                class="btn btn-danger">加入购物车</button>
-        <router-link to="/payInfo"
-                     type="button"
-                     class="btn btn-success">立即购买</router-link>
-      </div>
-    </div>
-  </div>
+             :src="prod.requirePath">
+      </el-aside>
+      <el-main class="prod-info">
+        <p>{{prod.prodInfo}}</p>
+        <p>价格：{{prod.prodPrice}}￥</p>
+        <p>送至：芜湖市鸠江区国家级广告产业园B座614</p>
+        <p>规格：{{prod.prodUnit}}</p>
+        <p>数量:
+          <el-input-number v-model="buyNums"
+                           :min="1"
+                           :max="10"
+                           label="购买数量"></el-input-number>
+        </p>
+        <el-button type="primary"
+                   @click="addCarts(prod.id)">加入购物车</el-button>
+        <el-button type="success"
+                   @click="jumpView('/payInfo')">立即购买</el-button>
+      </el-main>
+    </el-container>
+  </el-container>
 </template>
 
-
 <script>
-import 'bootstrap/dist/css/bootstrap.min.css'
 export default {
+  data () {
+    return {
+      prod: {},
+      buyNums: '',
+      shopCarSize: 0
+    }
+  },
+  methods: {
+    /**
+     * 获取产品信息
+     */
+    getProdInfo (id) {
+      let _this = this
+      this.axios.get('/citysell/prod/' + id).then(function (resp) {
+        _this.prod = resp.data.data
+        _this.prod.requirePath = require('../assets/images/' + _this.prod.imgPath)
+      })
+    },
 
+    /**
+     * 添加购物车
+     */
+    addCarts (prodId) {
+      let param = 'prodId=' + prodId + "&buyNums=" + this.buyNums
+      let _this = this
+      this.axios.post('/citysell/carts/add', param, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }).then(function () {
+        // 刷新购物车数量
+        _this.axios.get('/citysell/carts/count').then(function (resp) {
+          _this.shopCarSize = resp.data.data
+        })
+      })
+    }
+  },
+
+  mounted () {
+    if (sessionStorage.getItem("store") && !this.$store.state.prodId) {
+      //this.$store.replaceState是vue官方提供的一个api表示替换 store 的根状态
+      //里面的Object.assign()表示将store中的状态和sessionStorage中的状态进行合并
+      this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(sessionStorage.getItem("store"))))
+    }
+
+    // 1.获取产品信息
+    this.getProdInfo(this.$store.state.prodId)
+
+    // 2.获取购物车数量
+    let _this = this
+    this.axios.get('/citysell/carts/count').then(function (resp) {
+      _this.shopCarSize = resp.data.data
+    })
+  }
 }
 </script>
 
 <style scoped>
+.el-main {
+  background-color: #e9eef3;
+  color: #333;
+}
+
+.box {
+  width: 50%;
+  margin: 0px auto;
+}
+
 .prod-info {
-  font: 700 16 px Arial, "microsoft yahei";
-  color: #666;
-  padding-top: 10 px;
-  line-height: 28px;
-  margin-bottom: 5 px;
   text-align: left;
-}
-.form-control {
-  display: inline-block;
-  width: 15%;
-  margin-left: 10px;
-}
-.menu {
-  text-align: right;
-}
-.menu-item {
-  margin: 5px 10px;
-  text-decoration: underline;
-}
-.btn {
-  margin: 0px 10px;
 }
 </style>

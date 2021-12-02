@@ -5,8 +5,13 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/citysell?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-mybatis:
+# mapper.xml文件位置
+mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
-  configuration:
-    map-underscore-to-camel-case: true
-    auto-mapping-behavior: full
+
+logging:
+  level:
+    com.yuwen.citysell.dao: debug
+
+server:
+  port: 9000

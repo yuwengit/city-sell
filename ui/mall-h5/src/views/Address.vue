@@ -20,13 +20,21 @@
           <el-table-column prop="shippingAddr"
                            label="地址">
           </el-table-column>
+          <el-table-column prop="defaultFlag"
+                           label="默认地址"
+                           align=center>
+            <template slot-scope="scope">
+              <i class="el-icon-circle-check"
+                 v-if="scope.row.defaultFlag == 1"></i>
+            </template>
+          </el-table-column>
           <el-table-column fixed="right"
                            label="操作">
-            <el-button type="warning"
-                       size="small">编辑</el-button>
-            <el-button type="danger"
-                       size="small"
-                       @click="delAddr">删除</el-button>
+            <template slot-scope="scope">
+              <el-button type="danger"
+                         size="small"
+                         @click="delAddr(scope.row.id)">删除</el-button>
+            </template>
           </el-table-column>
         </el-table>
       </div>
@@ -38,28 +46,40 @@
 export default {
   data () {
     return {
-      addressList: [{
-        username: "俞文",
-        phone: "17775284207",
-        shippingAddr: "芜湖国家级广告产业园B座614"
-      }, {
-        username: "俞文",
-        phone: "17775284207",
-        shippingAddr: "芜湖国家级广告产业园B座614"
-      }]
+      addressList: []
     }
   },
   methods: {
-    delAddr () {
+    addrList () {
+      let _this = this
+      this.axios.get('/citysell/addr/list')
+        .then(function (response) {
+          _this.addressList = response.data.data
+        })
+    },
+    delAddr (id) {
       this.$confirm('是否删除该收货地址?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
-        });
+        let _this = this
+        this.axios.get('/citysell/addr/del?id=' + id)
+          .then(function (response) {
+            let code = response.data.code
+            if (code == 200) {
+              _this.$message({
+                type: 'success',
+                message: '删除成功!'
+              });
+            } else {
+              _this.$message({
+                type: 'info',
+                message: '删除失败'
+              });
+            }
+            _this.addrList()
+          })
       }).catch(() => {
         this.$message({
           type: 'info',
@@ -70,6 +90,9 @@ export default {
     toAddAddr () {
       this.$router.push('/addAddress')
     }
+  },
+  mounted () {
+    this.addrList();
   }
 }
 </script>

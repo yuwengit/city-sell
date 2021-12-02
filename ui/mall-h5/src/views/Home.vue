@@ -1,67 +1,61 @@
 <template>
-  <div class="container">
-    <div class="row clearfix">
-      <div class="col-md-12 column">
-        <form action="">
-          <input type="text">
-          <input class="btn btn-default"
-                 type="submit"
-                 value="搜索" />
-        </form>
-      </div>
-    </div>
-    <div class="row clearfix">
-      <div class="col-md-12 column">
-        <img @click="goToDetail(1)"
-             class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-        <img class="show-img"
-             src="@/assets/images/外套1.png">
-      </div>
-    </div>
-    <div class="row clearfix">
-      <div class="col-md-12 column">
-        <p>@copyright yuwen
-        </p>
-      </div>
-    </div>
-  </div>
+  <el-container>
+    <el-header>
+      <form action="">
+        <input type="text">
+        <input type="submit"
+               value="搜索" />
+      </form>
+    </el-header>
+    <el-main>
+      <img v-for="prod in prodData"
+           :key="prod.id"
+           :src="prod.requirePath"
+           @click="goToDetail(prod.id)"
+           class="show-img"
+           alt="img">
+    </el-main>
+
+    <el-footer>
+      <p>@copyright yuwen</p>
+    </el-footer>
+  </el-container>
 </template>
 
 <script>
-import 'bootstrap/dist/css/bootstrap.min.css'
 export default {
+  data () {
+    return { prodData: [] }
+  },
   methods: {
+    /**
+     * 获取商品数据
+     */
+    prodList () {
+      let _this = this
+      this.axios.get("/citysell/prod/list").then(function (response) {
+        response.data.data.records.forEach(item => {
+          // 把图片地址转换一下
+          item.requirePath = require('../assets/images/' + item.imgPath)
+        })
+        _this.prodData = response.data.data.records
+      })
+    },
+
+    /**
+     * 去商品详情页
+     */
     goToDetail (id) {
-      console.log(id)
+      // 使用vuex传递id
+      this.$store.state.prodId = id
       this.$router.push('/productDetail')
     }
+  },
+  /**
+   * 页面加载就执行该方法
+   */
+  mounted () {
+    this.prodList()
   }
 }
 </script>

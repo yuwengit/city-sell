@@ -1,76 +1,139 @@
 <template>
-  <div class="container">
-    <div class="col-md-12 column">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <td><input type="checkbox"></td>
-            <td>物品名称</td>
-            <td>价格</td>
-            <td>数量</td>
-            <td>价格</td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in shopList"
-              :key="item.id">
-            <td><input type="checkbox"></td>
-            <td>{{item.shopName}}</td>
-            <td>{{item.shopPrice}}￥</td>
-            <td><input type="number"
-                     class="prod-nums"
-                     v-model="item.buyNums"></td>
-            <td><span>{{item.shopPrice*item.buyNums}}</span>￥</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="car-opera">
-        总价：{{totalAmount()}}￥
-        <router-link to="/payInfo"
-                     type="button"
-                     class="btn btn-success">结算</router-link>
+  <el-row style="width:50%;margin: 0px auto">
+    <el-col :span="24">
+      <div class="grid-content bg-purple">
+        <el-table :data="shopCarList"
+                  stripe
+                  border
+                  @selection-change="selectProd"
+                  style="width: 100%">
+          <el-table-column type="selection"
+                           align="center"
+                           width="55">
+          </el-table-column>
+          <el-table-column prop="prodName"
+                           align="center"
+                           label="商品名称">
+          </el-table-column>
+          <el-table-column prop="prodPrice"
+                           align="center"
+                           label="商品价格">
+          </el-table-column>
+          <el-table-column align="center"
+                           label="购买数量">
+            <template slot-scope="scope">
+              <el-input-number v-model="scope.row.buyNums"
+                               :min="1"
+                               :max="1000"></el-input-number>
+            </template>
+          </el-table-column>
+          <el-table-column align="center"
+                           label="价格">
+            <template slot-scope="scope">
+              {{scope.row.buyNums*scope.row.prodPrice}}￥
+            </template>
+          </el-table-column>
+          <el-table-column fixed="right"
+                           label="操作"
+                           align="center">
+            <template slot-scope="scope">
+              <el-button type="danger"
+                         size="small"
+                         @click="delCarts(scope.row.prodId)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="text-align:right;">
+          <div>
+            总价：{{totalAmount()}}￥
+            <el-button type="primary"
+                       @click="pay">立即结算</el-button>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+    </el-col>
+  </el-row>
 </template>
 
-<style scoped>
-.prod-nums {
-  width: 15%;
-  text-align: center;
-}
-.car-opera {
-  text-align: right;
-}
-</style>
-
 <script>
-import 'bootstrap/dist/css/bootstrap.min.css'
 export default {
   data: function () {
     return {
       singlePrice: 0,
-      shopList: [{
-        id: 1,
-        shopName: '外套',
-        shopPrice: 99,
-        buyNums: 1
-      },
-      {
-        id: 2,
-        shopName: 'T恤',
-        shopPrice: 100,
-        buyNums: 2
-      }]
+      shopCarList: [],
+      selectedProdIds: []
     }
   },
   methods: {
+    /**
+     * 计算总价
+     */
     totalAmount () {
-      return this.shopList.map(
-        row => row.shopPrice * row.buyNums).reduce(
-          (acc, cur) => (cur + acc), 1)
+      return this.shopCarList.map(
+        row => row.prodPrice * row.buyNums).reduce(
+          (acc, cur) => (cur + acc), 0)
+    },
+
+    /**
+     * 查询购物车列表
+     */
+    getShopCarList () {
+      let _this = this
+      this.axios.get("/citysell/carts/list").then(function (resp) {
+        _this.shopCarList = resp.data.data
+      })
+    },
+
+    /**
+     * 删除购物车中的商品
+     */
+    delCarts (prodId) {
+      let param = "prodId=" + prodId
+      let _this = this
+      this.axios.post('/citysell/carts/del', param, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+        .then(function (resp) {
+          if (resp.data.code == 200) {
+            _this.getShopCarList()
+          }
+        })
+    },
+
+    /**
+     * 选中商品
+     */
+    selectProd (id) {
+      this.selectedProdIds = id
+    },
+
+    /**
+     * 立即结算
+     */
+    pay () {
+      let param = []
+      if (this.selectedProdIds.length == 0) {
+        this.$message({
+          showClose: true,
+          message: '请选择商品'
+        });
+        return
+      }
+      this.selectedProdIds.forEach(item => {
+        let unit = {}
+        unit.id = item.id
+        unit.prodId = item.prodId
+        unit.buyNums = item.buyNums
+        param.push(unit)
+      })
+      let _this = this
+      this.axios.post('/citysell/carts/pay', param).then(function (resp) {
+        _this.$store.state.totalPayAmount = resp.data.data
+        _this.$router.push('/payInfo')
+      })
     }
   },
-  mounted () { window.vue = this }
+  mounted () {
+    // 加载购物车数据
+    this.getShopCarList()
+  }
 }
 </script>

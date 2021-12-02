@@ -14,6 +14,13 @@
         <el-input v-model="form.shippingAddr"></el-input>
       </el-form-item>
       <el-form-item>
+        <label class="el-form-item__label">默认收货地址：</label>
+        <el-radio v-model="form.defaultFlag"
+                  label="1">是</el-radio>
+        <el-radio v-model="form.defaultFlag"
+                  label="0">否</el-radio>
+      </el-form-item>
+      <el-form-item>
         <el-button type="primary"
                    @click="onSubmit">立即创建</el-button>
         <el-button @click="toAddrList">取消</el-button>
@@ -29,13 +36,17 @@ export default {
       form: {
         username: '',
         phone: '',
-        shippingAddr: ''
+        shippingAddr: '',
+        defaultFlag: '1'
       }
     }
   },
   methods: {
     onSubmit () {
-      console.log('submit!');
+      var _this = this;
+      this.axios.post('/citysell/addr/add', this.form).then(function () {
+        _this.toAddrList()
+      })
     },
     toAddrList () {
       this.$router.push('/address')
